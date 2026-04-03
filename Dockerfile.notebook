@@ -1,0 +1,30 @@
+FROM apache/spark:3.5.8
+
+USER root
+
+ENV SPARK_HOME=/opt/spark
+ENV HADOOP_CONF_DIR=/opt/hadoop-conf
+ENV HOME=/opt/workspace
+ENV JUPYTER_RUNTIME_DIR=/opt/workspace/.local/share/jupyter/runtime
+ENV CONDA_DIR=/opt/conda
+ENV PATH=/opt/conda/bin:$PATH
+
+RUN python3 -c "import urllib.request; urllib.request.urlretrieve('https://github.com/conda-forge/miniforge/releases/download/24.11.3-0/Miniforge3-Linux-x86_64.sh', '/tmp/miniforge.sh')" \
+    && bash /tmp/miniforge.sh -b -p "$CONDA_DIR" \
+    && "$CONDA_DIR"/bin/pip install --no-cache-dir notebook==6.5.7 \
+    && rm -f /tmp/miniforge.sh \
+    && mkdir -p /opt/hadoop-conf /opt/workspace/notebooks /opt/workspace/.local/share/jupyter/runtime \
+    && chown -R spark:spark /opt/hadoop-conf /opt/workspace "$CONDA_DIR"
+
+COPY cluster/conf/hadoop/core-site.xml /opt/hadoop-conf/core-site.xml
+COPY cluster/conf/hadoop/hdfs-site.xml /opt/hadoop-conf/hdfs-site.xml
+COPY notebook/start-notebook.sh /usr/local/bin/start-notebook.sh
+
+RUN chmod +x /usr/local/bin/start-notebook.sh \
+    && chown spark:spark /usr/local/bin/start-notebook.sh
+
+USER spark
+
+WORKDIR /opt/workspace/notebooks
+
+ENTRYPOINT ["/usr/local/bin/start-notebook.sh"]

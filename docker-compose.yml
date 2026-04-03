@@ -1,0 +1,78 @@
+services:
+  master:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: apache-spark-hadoop-cluster:3.5.8
+    container_name: master
+    hostname: master
+    command: ["/usr/local/bin/start-master-node.sh"]
+    ports:
+      - "7077:7077"
+      - "8080:8080"
+      - "9870:9870"
+      - "9000:9000"
+    volumes:
+      - master_namenode:/data/hdfs/namenode
+      - master_secondary:/data/hdfs/secondary
+
+  slave01:
+    image: apache-spark-hadoop-cluster:3.5.8
+    container_name: slave01
+    hostname: slave01
+    command: ["/usr/local/bin/start-worker-node.sh"]
+    depends_on:
+      - master
+    ports:
+      - "8081:8081"
+    volumes:
+      - slave01_datanode:/data/hdfs/datanode
+
+  slave02:
+    image: apache-spark-hadoop-cluster:3.5.8
+    container_name: slave02
+    hostname: slave02
+    command: ["/usr/local/bin/start-worker-node.sh"]
+    depends_on:
+      - master
+    ports:
+      - "8082:8081"
+    volumes:
+      - slave02_datanode:/data/hdfs/datanode
+
+  submit:
+    image: apache-spark-hadoop-cluster:3.5.8
+    container_name: spark-submit-job
+    hostname: submit
+    profiles: ["job"]
+    command:
+      - /usr/local/spark/bin/spark-submit
+      - --master
+      - spark://master:7077
+      - /opt/workspace/verify_spark.py
+    depends_on:
+      - master
+      - slave01
+      - slave02
+
+  notebook:
+    build:
+      context: .
+      dockerfile: Dockerfile.notebook
+    container_name: pyspark-notebook
+    hostname: notebook
+    user: "0:0"
+    depends_on:
+      - master
+      - slave01
+      - slave02
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebooks:/opt/workspace/notebooks
+
+volumes:
+  master_namenode:
+  master_secondary:
+  slave01_datanode:
+  slave02_datanode:

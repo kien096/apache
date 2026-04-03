@@ -1,0 +1,9 @@
+export HADOOP_HOME=/opt/hadoop
+export HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+export SPARK_MASTER_HOST=master
+export SPARK_MASTER_PORT=7077
+export SPARK_MASTER_WEBUI_PORT=8080
+export SPARK_WORKER_WEBUI_PORT=8081
+export SPARK_WORKER_DIR=/data/spark/work
+export SPARK_LOG_DIR=/opt/spark/logs
+export PYSPARK_PYTHON=/opt/conda/bin/python
