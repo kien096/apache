@@ -11,7 +11,8 @@ ENV PATH=/opt/conda/bin:$PATH
 
 RUN python3 -c "import urllib.request; urllib.request.urlretrieve('https://github.com/conda-forge/miniforge/releases/download/24.11.3-0/Miniforge3-Linux-x86_64.sh', '/tmp/miniforge.sh')" \
     && bash /tmp/miniforge.sh -b -p "$CONDA_DIR" \
-    && "$CONDA_DIR"/bin/pip install --no-cache-dir notebook==6.5.7 \
+    && "$CONDA_DIR"/bin/pip install --no-cache-dir notebook==6.5.7 nltk \
+    && printf '%s\n%s\n' /opt/spark/python/lib/pyspark.zip /opt/spark/python/lib/py4j-0.10.9.7-src.zip > "$CONDA_DIR"/lib/python3.12/site-packages/spark_python_path.pth \
     && rm -f /tmp/miniforge.sh \
     && mkdir -p /opt/hadoop-conf /opt/workspace/notebooks /opt/workspace/.local/share/jupyter/runtime \
     && chown -R spark:spark /opt/hadoop-conf /opt/workspace "$CONDA_DIR"

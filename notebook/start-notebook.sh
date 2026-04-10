@@ -16,7 +16,12 @@ cd /opt/workspace/notebooks
 export HOME=/root
 export JUPYTER_RUNTIME_DIR=/root/.local/share/jupyter/runtime
 export PYSPARK_PYTHON=/opt/conda/bin/python
-export PYSPARK_DRIVER_PYTHON=/opt/conda/bin/jupyter-notebook
-export PYSPARK_DRIVER_PYTHON_OPTS="--ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token= --NotebookApp.password="
+export PYTHONPATH="/opt/spark/python/lib/pyspark.zip:/opt/spark/python/lib/py4j-0.10.9.7-src.zip:${PYTHONPATH:-}"
 
-exec /opt/spark/bin/pyspark --master spark://master:7077
+exec /opt/conda/bin/jupyter-notebook \
+  --ip=0.0.0.0 \
+  --port=8888 \
+  --no-browser \
+  --allow-root \
+  --NotebookApp.token= \
+  --NotebookApp.password=

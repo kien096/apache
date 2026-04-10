@@ -4,6 +4,8 @@ spark = (
     SparkSession.builder.appName("LogAnalysis")
     .master("spark://master:7077")
     .config("spark.pyspark.python", "/opt/conda/bin/python")
+    .config("spark.cores.max", "4")
+    .config("spark.executor.cores", "2")
     .getOrCreate()
 )
 

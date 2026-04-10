@@ -70,6 +70,7 @@ services:
       - "8888:8888"
     volumes:
       - ./notebooks:/opt/workspace/notebooks
+      - ./data:/opt/workspace/data
 
 volumes:
   master_namenode:

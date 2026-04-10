@@ -8,7 +8,7 @@ try {
     docker cp .\notebooks\sample.txt master:/tmp/sample.txt
     docker exec master hdfs dfs -mkdir -p /input | Out-Null
     docker exec master hdfs dfs -put -f /tmp/sample.txt /input/sample.txt | Out-Null
-    docker exec pyspark-notebook /opt/spark/bin/spark-submit --master spark://master:7077 /opt/workspace/notebooks/word_count.py
+    docker exec pyspark-notebook /opt/spark/bin/spark-submit --master spark://master:7077 --conf spark.cores.max=4 --conf spark.executor.cores=2 /opt/workspace/notebooks/word_count.py
 }
 finally {
     Pop-Location
