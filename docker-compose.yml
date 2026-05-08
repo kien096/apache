@@ -68,6 +68,11 @@ services:
       - slave02
     ports:
       - "8888:8888"
+      - "4040:4040"
+      - "4041:4041"
+      - "4042:4042"
+      - "4043:4043"
+      - "4044:4044"
     volumes:
       - ./notebooks:/opt/workspace/notebooks
       - ./data:/opt/workspace/data
