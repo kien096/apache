@@ -1,0 +1,103 @@
+{
+  "uid": "bt01-web-log-analysis",
+  "title": "BT01 - Web Log Analysis",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "timezone": "browser",
+  "time": {
+    "from": "2026-06-01T00:00:00+07:00",
+    "to": "2026-06-04T00:00:00+07:00"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "day",
+        "type": "query",
+        "datasource": {
+          "type": "postgres",
+          "uid": "bt01-postgres"
+        },
+        "query": "SELECT DISTINCT day::text FROM traffic_by_hour ORDER BY day",
+        "refresh": 1,
+        "includeAll": true,
+        "multi": true,
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Luu luong truy cap theo gio",
+      "type": "timeseries",
+      "datasource": {
+        "type": "postgres",
+        "uid": "bt01-postgres"
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "format": "time_series",
+          "rawSql": "SELECT time AS \"time\", SUM(hits) AS \"requests\" FROM traffic_timeseries WHERE $__timeFilter(time) AND day::text IN (${day:sqlstring}) GROUP BY time ORDER BY time",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Top 20 IP truy cap nhieu nhat",
+      "type": "barchart",
+      "datasource": {
+        "type": "postgres",
+        "uid": "bt01-postgres"
+      },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 9 },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT ip, SUM(hits) AS hits FROM top_ips WHERE $__timeFilter(day::timestamp) AND day::text IN (${day:sqlstring}) GROUP BY ip ORDER BY hits DESC, ip LIMIT 20",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Phan bo ma HTTP theo ngay",
+      "type": "barchart",
+      "datasource": {
+        "type": "postgres",
+        "uid": "bt01-postgres"
+      },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 9 },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT day::text AS day, status::text AS status, hits FROM status_by_day WHERE $__timeFilter(day::timestamp) AND day::text IN (${day:sqlstring}) ORDER BY day, status",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Top URL moi ngay",
+      "type": "table",
+      "datasource": {
+        "type": "postgres",
+        "uid": "bt01-postgres"
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 19 },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT day, url, hits FROM top_urls_by_day WHERE $__timeFilter(day::timestamp) AND day::text IN (${day:sqlstring}) ORDER BY day, hits DESC, url",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}

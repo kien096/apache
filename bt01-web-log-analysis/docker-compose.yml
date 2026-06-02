@@ -1,0 +1,144 @@
+services:
+  namenode:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: bt01-hadoop-yarn:3.3.6
+    container_name: bt01-namenode
+    hostname: namenode
+    user: root
+    command: ["bash", "/opt/bt01/docker-scripts/start-namenode.sh"]
+    ports:
+      - "9871:9870"
+      - "9001:9000"
+    volumes:
+      - namenode_data:/data/hdfs/namenode
+      - ./docker/conf:/opt/hadoop/etc/hadoop
+      - ./docker/scripts:/opt/bt01/docker-scripts:ro
+      - ./scripts:/opt/bt01/scripts:ro
+      - ./streaming:/opt/bt01/streaming:ro
+
+  datanode1:
+    image: bt01-hadoop-yarn:3.3.6
+    container_name: bt01-datanode1
+    hostname: datanode1
+    user: root
+    command: ["bash", "/opt/bt01/docker-scripts/start-datanode.sh"]
+    depends_on:
+      - namenode
+    volumes:
+      - datanode1_data:/data/hdfs/datanode
+      - ./docker/conf:/opt/hadoop/etc/hadoop
+      - ./docker/scripts:/opt/bt01/docker-scripts:ro
+
+  datanode2:
+    image: bt01-hadoop-yarn:3.3.6
+    container_name: bt01-datanode2
+    hostname: datanode2
+    user: root
+    command: ["bash", "/opt/bt01/docker-scripts/start-datanode.sh"]
+    depends_on:
+      - namenode
+    volumes:
+      - datanode2_data:/data/hdfs/datanode
+      - ./docker/conf:/opt/hadoop/etc/hadoop
+      - ./docker/scripts:/opt/bt01/docker-scripts:ro
+
+  resourcemanager:
+    image: bt01-hadoop-yarn:3.3.6
+    container_name: bt01-resourcemanager
+    hostname: resourcemanager
+    user: root
+    command: ["bash", "/opt/bt01/docker-scripts/start-resourcemanager.sh"]
+    ports:
+      - "8089:8088"
+    volumes:
+      - ./docker/conf:/opt/hadoop/etc/hadoop
+      - ./docker/scripts:/opt/bt01/docker-scripts:ro
+
+  nodemanager1:
+    image: bt01-hadoop-yarn:3.3.6
+    container_name: bt01-nodemanager1
+    hostname: nodemanager1
+    user: root
+    command: ["bash", "/opt/bt01/docker-scripts/start-nodemanager.sh"]
+    depends_on:
+      - resourcemanager
+      - namenode
+    volumes:
+      - nm1_local:/data/yarn/local
+      - nm1_logs:/data/yarn/logs
+      - ./docker/conf:/opt/hadoop/etc/hadoop
+      - ./docker/scripts:/opt/bt01/docker-scripts:ro
+      - ./streaming:/opt/bt01/streaming:ro
+
+  nodemanager2:
+    image: bt01-hadoop-yarn:3.3.6
+    container_name: bt01-nodemanager2
+    hostname: nodemanager2
+    user: root
+    command: ["bash", "/opt/bt01/docker-scripts/start-nodemanager.sh"]
+    depends_on:
+      - resourcemanager
+      - namenode
+    volumes:
+      - nm2_local:/data/yarn/local
+      - nm2_logs:/data/yarn/logs
+      - ./docker/conf:/opt/hadoop/etc/hadoop
+      - ./docker/scripts:/opt/bt01/docker-scripts:ro
+      - ./streaming:/opt/bt01/streaming:ro
+
+  historyserver:
+    image: bt01-hadoop-yarn:3.3.6
+    container_name: bt01-historyserver
+    hostname: historyserver
+    user: root
+    command: ["bash", "/opt/bt01/docker-scripts/start-historyserver.sh"]
+    depends_on:
+      - namenode
+      - resourcemanager
+    ports:
+      - "19889:19888"
+    volumes:
+      - ./docker/conf:/opt/hadoop/etc/hadoop
+      - ./docker/scripts:/opt/bt01/docker-scripts:ro
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: bt01-postgres
+    environment:
+      POSTGRES_USER: bt01
+      POSTGRES_PASSWORD: bt01
+      POSTGRES_DB: bt01_logs
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./dashboard/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: bt01-grafana
+    depends_on:
+      - postgres
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_DEFAULT_THEME: light
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./dashboard/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./dashboard/grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+volumes:
+  namenode_data:
+  datanode1_data:
+  datanode2_data:
+  nm1_local:
+  nm1_logs:
+  nm2_local:
+  nm2_logs:
+  postgres_data:
+  grafana_data:
